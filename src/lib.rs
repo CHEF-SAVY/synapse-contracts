@@ -124,7 +124,7 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         assets::require_allowed(&env, &asset_code);
 
         if let Some(max) = max_deposit::get(&env) {
-            if amount > *max { panic!("amount exceeds max deposit") }
+            if amount > max { panic!("amount exceeds max deposit") }
         }
 
         if let Some(existing) = deposits::find_by_anchor_id(&env, &anchor_transaction_id) {
@@ -291,12 +291,10 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
 
     pub fn set_max_deposit(env: Env, caller: Address, amount: i128) {
         require_admin(&env, &caller);
-        max_deposit::set(&env, &amount);
+        max_deposit::set(&env, amount);
     }
 
-    pub fn get_max_deposit(env: Env) -> i128 {
-        max_deposit::get(&env)
-    }
+
 
     pub fn get_dlq_count(env: Env) -> i128 {
         dlq::get_count(&env)

@@ -1,6 +1,7 @@
 #![cfg(test)]
 
-use soroban_sdk::{testutils::{Address as _, Events as _}, Address, Env, String as SorobanString, vec};
+use soroban_sdk::{testutils::{Address as _, Events as _, Ledger as _}, symbol_short, Val, Address, Env, String as SorobanString, vec};
+use synapse_contract::types::Event;
 use synapse_contract::{SynapseContract, SynapseContractClient};
 
 fn setup(env: &Env) -> (Address, Address, SynapseContractClient<'_>) {
