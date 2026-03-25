@@ -27,6 +27,9 @@ pub mod admin {
     pub fn set(env: &Env, admin: &Address) {
         env.storage().instance().set(&StorageKey::Admin, admin);
     }
+    pub fn has(env: &Env) -> bool {
+        env.storage().instance().has(&StorageKey::Admin)
+    }
     pub fn get(env: &Env) -> Address {
         env.storage()
             .instance()

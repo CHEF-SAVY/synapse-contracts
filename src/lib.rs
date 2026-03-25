@@ -20,8 +20,8 @@ pub struct SynapseContract;
 impl SynapseContract {
     // TODO(#2): emit `Initialized` event on first call
     pub fn initialize(env: Env, admin: Address) {
-        if env.storage().instance().has(&storage::StorageKey::Admin) {
-            panic!("already initialised");
+        if storage::admin::has(&env) {
+            panic!("contract already initialised");
         }
         admin.require_auth();
         storage::admin::set(&env, &admin);
@@ -443,6 +443,18 @@ mod tests {
         let (emitting_contract, topics, _data) = events.get(0).unwrap();
         assert_eq!(emitting_contract, contract_id);
         assert_eq!(topics, (symbol_short!("synapse"),).into_val(&env));
+    }
+
+    #[test]
+    #[should_panic(expected = "contract already initialised")]
+    fn test_initialize_panics_when_called_twice() {
+        let env = Env::default();
+        let (admin1, contract_id) = setup(&env);
+        let client = SynapseContractClient::new(&env, &contract_id);
+        let admin2 = Address::generate(&env);
+        let _ = admin1;
+
+        client.initialize(&admin2);
     }
 
     #[test]
