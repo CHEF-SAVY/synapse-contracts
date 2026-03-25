@@ -289,14 +289,7 @@ pub fn grant_relayer(env: Env, caller: Address, relayer: Address) {
         relayers::has(&env, &address)
     }
 
-    pub fn set_max_deposit(env: Env, caller: Address, amount: i128) {
-        require_admin(&env, &caller);
-        max_deposit::set(&env, amount);
-    }
-
-
-
-    pub fn get_dlq_count(env: Env) -> i128 {
+pub fn get_dlq_count(env: Env) -> i128 {
         dlq::get_count(&env)
     }
 }
