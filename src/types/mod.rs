@@ -1,16 +1,10 @@
 use alloc::format;
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
-extern crate alloc;
-use alloc::format;
 
 // TODO(#45): replace generate_id with hash(anchor_transaction_id) for determinism
 
 pub const MAX_RETRIES: u32 = 5;
 // TODO(#46): add `Cancelled` status for user-initiated cancellations
-// TODO(#47): add `memo: Option<SorobanString>` field to Transaction
-// TODO(#48): add `memo_type: Option<SorobanString>` field to Transaction
-// TODO(#49): add `callback_type: Option<SorobanString>` field to Transaction
-// TODO(#50): store `relayer: Address` on Transaction (who registered it)
 
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
@@ -27,16 +21,15 @@ pub struct Transaction {
     pub id: SorobanString,
     pub anchor_transaction_id: SorobanString,
     pub stellar_account: Address,
-    pub relayer: Address, // #50: who registered this deposit
+    pub relayer: Address,
     pub amount: i128,
     pub asset_code: SorobanString,
+    pub memo: Option<SorobanString>,
+    pub memo_type: Option<SorobanString>,
     pub status: TransactionStatus,
     pub created_ledger: u32,
     pub updated_ledger: u32,
     pub settlement_id: SorobanString, // empty = unsettled
-    pub memo: Option<SorobanString>,
-    pub memo_type: Option<SorobanString>,
-    pub callback_type: Option<SorobanString>,
 }
 
 impl Transaction {
@@ -48,6 +41,7 @@ impl Transaction {
         amount: i128,
         asset_code: SorobanString,
         memo: Option<SorobanString>,
+        memo_type: Option<SorobanString>,
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
@@ -57,13 +51,12 @@ impl Transaction {
             relayer,
             amount,
             asset_code,
+            memo,
+            memo_type,
             status: TransactionStatus::Pending,
             created_ledger: ledger,
             updated_ledger: ledger,
             settlement_id: SorobanString::from_str(env, ""),
-            memo,
-            memo_type: None,
-            callback_type: None,
         }
     }
 }
@@ -132,31 +125,32 @@ impl DlqEntry {
 #[contracttype]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Event {
-    Initialized(Address),                                    // (admin)
-    DepositRegistered(SorobanString, SorobanString),         // (tx_id, anchor_id)
-    StatusUpdated(SorobanString, TransactionStatus),         // (tx_id, new_status)
-    MovedToDlq(SorobanString, SorobanString),                // (tx_id, error_reason)
-    DlqRetried(SorobanString),                               // (tx_id)
+    Initialized(Address),
+    DepositRegistered(SorobanString, SorobanString), // (tx_id, anchor_id)
+    StatusUpdated(SorobanString, TransactionStatus), // (tx_id, new_status)
+    MovedToDlq(SorobanString, SorobanString),        // (tx_id, error_reason)
+    DlqRetried(SorobanString),
     SettlementFinalized(SorobanString, SorobanString, i128), // (settlement_id, asset_code, total)
     AssetAdded(SorobanString),
     AssetRemoved(SorobanString),
-    RelayerRevoked(Address),
 }
 
 fn generate_id(env: &Env) -> SorobanString {
     let ts = env.ledger().timestamp();
-    let seq = env.ledger().sequence();
-    let mut data = [0u8; 12];
-    data[..8].copy_from_slice(&ts.to_be_bytes());
-    data[8..12].copy_from_slice(&seq.to_be_bytes());
-    let hash = env.crypto().sha256(&soroban_sdk::Bytes::from_slice(env, &data));
-    let bytes = hash.to_array();
-    // encode first 16 bytes as 32-char hex
-    let mut hex = [0u8; 32];
-    const HEX: &[u8] = b"0123456789abcdef";
-    for i in 0..16 {
-        hex[i * 2]     = HEX[(bytes[i] >> 4) as usize];
-        hex[i * 2 + 1] = HEX[(bytes[i] & 0xf) as usize];
+    let seq = env.ledger().sequence() as u64;
+    let combined = ts * 1_000_000 + seq;
+    let mut buf = [0u8; 20];
+    let mut n = combined;
+    let mut i = buf.len();
+    if n == 0 {
+        i -= 1;
+        buf[i] = b'0';
+    } else {
+        while n > 0 {
+            i -= 1;
+            buf[i] = b'0' + (n % 10) as u8;
+            n /= 10;
+        }
     }
     SorobanString::from_bytes(env, &hex)
 }
