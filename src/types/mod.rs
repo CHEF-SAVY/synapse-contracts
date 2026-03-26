@@ -1,3 +1,4 @@
+use alloc::format;
 use soroban_sdk::{contracttype, Address, Env, String as SorobanString, Vec};
 
 // TODO(#45): replace generate_id with hash(anchor_transaction_id) for determinism
@@ -6,7 +7,7 @@ pub const MAX_RETRIES: u32 = 5;
 // TODO(#46): add `Cancelled` status for user-initiated cancellations
 
 #[contracttype]
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TransactionStatus {
     Pending,
     Processing,
@@ -44,7 +45,7 @@ impl Transaction {
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
-            id: generate_id(env),
+            id: generate_id(env, &anchor_transaction_id),
             anchor_transaction_id,
             stellar_account,
             relayer,
@@ -82,7 +83,7 @@ impl Settlement {
         period_end: u64,
     ) -> Self {
         Self {
-            id: generate_id(env),
+            id: generate_settlement_id(env),
             asset_code,
             tx_ids,
             total_amount,
@@ -117,12 +118,12 @@ impl DlqEntry {
 
 /// Contract events — one variant per state change.
 // TODO(#51): add `RelayerGranted(Address)` variant
-// TODO(#52): add `RelayerRevoked(Address)` variant
+// TODO(#53): add `Initialized(Address)` variant
 // TODO(#54): add `ContractPaused` / `ContractUnpaused` variants
 // TODO(#56): add `MaxRetriesExceeded(SorobanString)` variant
 // TODO(#57): add `AdminTransferred(Address, Address)` variant
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Event {
     Initialized(Address),
     DepositRegistered(SorobanString, SorobanString), // (tx_id, anchor_id)
@@ -151,6 +152,5 @@ fn generate_id(env: &Env) -> SorobanString {
             n /= 10;
         }
     }
-    let s = core::str::from_utf8(&buf[i..]).unwrap_or("0");
-    SorobanString::from_str(env, s)
+    SorobanString::from_bytes(env, &hex)
 }

@@ -30,6 +30,9 @@ pub mod admin {
     pub fn set(env: &Env, admin: &Address) {
         env.storage().instance().set(&StorageKey::Admin, admin);
     }
+    pub fn has(env: &Env) -> bool {
+        env.storage().instance().has(&StorageKey::Admin)
+    }
     pub fn get(env: &Env) -> Address {
         env.storage()
             .instance()
@@ -90,13 +93,9 @@ pub mod assets {
         if is_allowed(env, code) {
             return;
         }
-        if count(env) >= MAX_ASSETS {
-            panic!("max assets reached")
-        }
         env.storage()
             .instance()
             .set(&StorageKey::Asset(code.clone()), &true);
-        set_count(env, count(env) + 1);
     }
 
     pub fn remove(env: &Env, code: &SorobanString) {
@@ -180,6 +179,19 @@ pub mod settlements {
             .persistent()
             .get(&StorageKey::Settlement(id.clone()))
             .expect("settlement not found")
+    }
+    pub fn extend_ttl(env: &Env, id: &SorobanString) {
+        env.storage().persistent().extend_ttl(&StorageKey::Settlement(id.clone()), 535679, 535679);
+    }
+}
+
+pub mod max_deposit {
+    use super::*;
+    pub fn set(env: &Env, amount: i128) {
+        env.storage().instance().set(&StorageKey::MaxDeposit, &amount);
+    }
+    pub fn get(env: &Env) -> Option<i128> {
+        env.storage().instance().get(&StorageKey::MaxDeposit)
     }
 }
 
