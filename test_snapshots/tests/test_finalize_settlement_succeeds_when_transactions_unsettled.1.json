@@ -94,6 +94,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
@@ -197,7 +198,7 @@
             },
             "ext": "v0"
           },
-          4095
+          172800
         ]
       ],
       [
@@ -375,12 +376,6 @@
                     },
                     {
                       "key": {
-                        "symbol": "callback_type"
-                      },
-                      "val": "void"
-                    },
-                    {
-                      "key": {
                         "symbol": "created_ledger"
                       },
                       "val": {
@@ -420,7 +415,7 @@
                         "symbol": "settlement_id"
                       },
                       "val": {
-                        "string": "15ec7bf0b50732b49f8228e07d243653"
+                        "string": "0"
                       }
                     },
                     {
@@ -508,6 +503,18 @@
                         },
                         "val": {
                           "bool": true
+                        }
+                      },
+                      {
+                        "key": {
+                          "vec": [
+                            {
+                              "symbol": "AssetCount"
+                            }
+                          ]
+                        },
+                        "val": {
+                          "u32": 1
                         }
                       },
                       {
@@ -998,6 +1005,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
