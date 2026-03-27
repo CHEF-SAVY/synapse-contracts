@@ -39,7 +39,6 @@ impl SynapseContract {
         }
         require_admin(&env, &caller);
         relayers::add(&env, &relayer);
-        emit(&env, Event::RelayerGranted(relayer));
     }
 
     // TODO(#6): panic if revoking a non-existent relayer
@@ -107,7 +106,7 @@ impl SynapseContract {
     pub fn set_max_deposit(env: Env, caller: Address, amount: i128) {
         require_admin(&env, &caller);
         if amount <= 0 { panic!("max deposit must be positive") }
-        max_deposit::set(&env, amount);
+        max_deposit::set(&env, &amount);
     }
 
     pub fn get_max_deposit(env: Env) -> Option<i128> {
@@ -153,6 +152,7 @@ impl SynapseContract {
             &env,
             anchor_transaction_id.clone(),
             stellar_account,
+            caller,
             amount,
             asset_code,
             memo,
@@ -215,10 +215,12 @@ impl SynapseContract {
     // TODO(#31): emit `DlqRetried` event
     pub fn retry_dlq(env: Env, caller: Address, tx_id: SorobanString) {
         require_not_paused(&env);
-        require_admin(&env, &caller);
-
-        let mut entry = dlq::get(&env, &tx_id).expect("dlq entry not found");
         let mut tx = deposits::get(&env, &tx_id);
+        let admin = storage::admin::get(&env);
+        if caller != admin && caller != tx.relayer {
+            panic!("not admin or original relayer");
+        }
+        let mut entry = dlq::get(&env, &tx_id).expect("dlq entry not found");
 
         tx.status = TransactionStatus::Pending;
         tx.updated_ledger = env.ledger().sequence();
@@ -227,17 +229,16 @@ impl SynapseContract {
         entry.last_retry_ledger = env.ledger().sequence();
 
         deposits::save(&env, &tx);
-        dlq::push(&env, &entry);
+        dlq::remove(&env, &tx_id);
+        emit(&env, Event::DlqRetried(tx_id.clone()));
 
         emit(&env, Event::StatusUpdated(tx_id, TransactionStatus::Pending));
     }
 
     // TODO(#33): verify each tx_id exists and has status Completed
     // TODO(#34): verify no tx_id is already linked to a settlement
-    // TODO(#35): write settlement_id back onto each Transaction
     // TODO(#36): verify total_amount matches sum of tx amounts on-chain
     // TODO(#37): verify period_start <= period_end
-    // TODO(#39): emit per-tx `Settled` event in addition to batch event
     pub fn finalize_settlement(
         env: Env,
         caller: Address,
@@ -313,14 +314,6 @@ impl SynapseContract {
         relayers::has(&env, &address)
     }
 
-    pub fn set_max_deposit(env: Env, caller: Address, amount: i128) {
-        require_admin(&env, &caller);
-        max_deposit::set(&env, &amount);
-    }
-
-    pub fn get_max_deposit(env: Env) -> i128 {
-        max_deposit::get(&env)
-    }
 }
 
 #[cfg(test)]

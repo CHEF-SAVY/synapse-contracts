@@ -45,7 +45,7 @@ impl Transaction {
     ) -> Self {
         let ledger = env.ledger().sequence();
         Self {
-            id: generate_id(env, &anchor_transaction_id),
+            id: generate_id(env),
             anchor_transaction_id,
             stellar_account,
             relayer,
@@ -83,7 +83,7 @@ impl Settlement {
         period_end: u64,
     ) -> Self {
         Self {
-            id: generate_settlement_id(env),
+            id: generate_id(env),
             asset_code,
             tx_ids,
             total_amount,
@@ -117,7 +117,6 @@ impl DlqEntry {
 }
 
 /// Contract events — one variant per state change.
-// TODO(#51): add `RelayerGranted(Address)` variant
 // TODO(#53): add `Initialized(Address)` variant
 // TODO(#54): add `ContractPaused` / `ContractUnpaused` variants
 // TODO(#56): add `MaxRetriesExceeded(SorobanString)` variant
