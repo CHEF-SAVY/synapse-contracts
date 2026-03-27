@@ -96,7 +96,8 @@
                 },
                 {
                   "string": "test-memo"
-                }
+                },
+                "void"
               ]
             }
           },
@@ -265,9 +266,7 @@
                       "key": {
                         "symbol": "relayer"
                       },
-                      "val": {
-                        "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                      }
+                      "val": "void"
                     },
                     {
                       "key": {
@@ -821,7 +820,8 @@
                 },
                 {
                   "string": "test-memo"
-                }
+                },
+                "void"
               ]
             }
           }
@@ -992,9 +992,7 @@
                   "key": {
                     "symbol": "relayer"
                   },
-                  "val": {
-                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
-                  }
+                  "val": "void"
                 },
                 {
                   "key": {

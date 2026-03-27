@@ -94,6 +94,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
@@ -197,7 +198,7 @@
             },
             "ext": "v0"
           },
-          4095
+          172800
         ]
       ],
       [
@@ -210,7 +211,7 @@
                   "symbol": "Settlement"
                 },
                 {
-                  "string": "af5570f5a1810b7af78caf4bc70a660f"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 }
               ]
             },
@@ -230,7 +231,7 @@
                       "symbol": "Settlement"
                     },
                     {
-                      "string": "af5570f5a1810b7af78caf4bc70a660f"
+                      "string": "15ec7bf0b50732b49f8228e07d243653"
                     }
                   ]
                 },
@@ -258,7 +259,7 @@
                         "symbol": "id"
                       },
                       "val": {
-                        "string": "af5570f5a1810b7af78caf4bc70a660f"
+                        "string": "15ec7bf0b50732b49f8228e07d243653"
                       }
                     },
                     {
@@ -375,12 +376,6 @@
                     },
                     {
                       "key": {
-                        "symbol": "callback_type"
-                      },
-                      "val": "void"
-                    },
-                    {
-                      "key": {
                         "symbol": "created_ledger"
                       },
                       "val": {
@@ -420,7 +415,7 @@
                         "symbol": "settlement_id"
                       },
                       "val": {
-                        "string": ""
+                        "string": "0"
                       }
                     },
                     {
@@ -508,6 +503,18 @@
                         },
                         "val": {
                           "bool": true
+                        }
+                      },
+                      {
+                        "key": {
+                          "vec": [
+                            {
+                              "symbol": "AssetCount"
+                            }
+                          ]
+                        },
+                        "val": {
+                          "u32": 1
                         }
                       },
                       {
@@ -998,6 +1005,7 @@
                 {
                   "string": "USD"
                 },
+                "void",
                 "void"
               ]
             }
@@ -1126,10 +1134,40 @@
             "data": {
               "vec": [
                 {
+                  "symbol": "Settled"
+                },
+                {
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
+                },
+                {
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "failed_call": false
+    },
+    {
+      "event": {
+        "ext": "v0",
+        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
+        "type_": "contract",
+        "body": {
+          "v0": {
+            "topics": [
+              {
+                "symbol": "synapse"
+              }
+            ],
+            "data": {
+              "vec": [
+                {
                   "symbol": "SettlementFinalized"
                 },
                 {
-                  "string": "af5570f5a1810b7af78caf4bc70a660f"
+                  "string": "15ec7bf0b50732b49f8228e07d243653"
                 },
                 {
                   "string": "USD"
@@ -1163,7 +1201,7 @@
               }
             ],
             "data": {
-              "string": "af5570f5a1810b7af78caf4bc70a660f"
+              "string": "15ec7bf0b50732b49f8228e07d243653"
             }
           }
         }
@@ -1189,7 +1227,7 @@
               }
             ],
             "data": {
-              "string": "af5570f5a1810b7af78caf4bc70a660f"
+              "string": "15ec7bf0b50732b49f8228e07d243653"
             }
           }
         }
@@ -1234,7 +1272,7 @@
                     "symbol": "id"
                   },
                   "val": {
-                    "string": "af5570f5a1810b7af78caf4bc70a660f"
+                    "string": "15ec7bf0b50732b49f8228e07d243653"
                   }
                 },
                 {
