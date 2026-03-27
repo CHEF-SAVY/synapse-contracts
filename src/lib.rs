@@ -203,6 +203,9 @@ impl SynapseContract {
         require_not_paused(&env);
         require_relayer(&env, &caller);
         let mut tx = deposits::get(&env, &tx_id);
+        if tx.status == TransactionStatus::Completed {
+            panic!("cannot fail completed transaction");
+        }
         tx.status = TransactionStatus::Failed;
         tx.updated_ledger = env.ledger().sequence();
         deposits::save(&env, &tx);
@@ -479,6 +482,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "cannot fail completed transaction")]
     fn test_mark_failed_panics_when_completed() {
         let env = Env::default();
         let (client, relayer, tx_id) = setup_relayer_deposit(&env, "mf-completed");
@@ -489,8 +493,6 @@ mod tests {
             &tx_id,
             &SorobanString::from_str(&env, "late-fail"),
         );
-        let tx = client.get_transaction(&tx_id);
-        assert!(matches!(tx.status, TransactionStatus::Failed));
     }
 
     #[test]

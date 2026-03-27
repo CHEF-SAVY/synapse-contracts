@@ -153,3 +153,18 @@ fn generate_id(env: &Env) -> SorobanString {
     }
     SorobanString::from_bytes(env, &hex)
 }
+
+fn generate_settlement_id(env: &Env) -> SorobanString {
+    let ts = env.ledger().timestamp();
+    let mut data = [0u8; 8];
+    data.copy_from_slice(&ts.to_be_bytes());
+    let hash = env.crypto().sha256(&soroban_sdk::Bytes::from_slice(env, &data));
+    let bytes = hash.to_array();
+    let mut hex = [0u8; 32];
+    const HEX: &[u8] = b"0123456789abcdef";
+    for i in 0..16 {
+        hex[i * 2]     = HEX[(bytes[i] >> 4) as usize];
+        hex[i * 2 + 1] = HEX[(bytes[i] & 0xf) as usize];
+    }
+    SorobanString::from_bytes(env, &hex)
+}

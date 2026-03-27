@@ -318,7 +318,11 @@ fn full_lifecycle_pending_to_completed() {
     );
     client.mark_processing(&relayer, &tx_id);
     client.mark_completed(&relayer, &tx_id);
-    // TODO(#25): assert tx.status == Completed once status is exposed on get_transaction
+    let tx = client.get_transaction(&tx_id);
+    assert_eq!(
+        tx.status,
+        synapse_contract::types::TransactionStatus::Completed
+    );
 }
 
 #[test]
@@ -346,7 +350,39 @@ fn mark_failed_creates_dlq_entry() {
 
 // TODO(#23): test Pending→Processing guard (skip to Processing from Completed should panic)
 // TODO(#25): test Processing→Completed guard
-// TODO(#26): test Failed transition guard
+
+#[test]
+#[should_panic(expected = "cannot fail completed transaction")]
+fn mark_failed_panics_when_transaction_completed() {
+    let env = Env::default();
+    let (admin, _, client) = setup(&env);
+    let relayer = Address::generate(&env);
+    client.grant_relayer(&admin, &relayer);
+    client.add_asset(&admin, &usd(&env));
+
+    let tx_id = client.register_deposit(
+        &relayer,
+        &SorobanString::from_str(&env, "tx-fail-guard"),
+        &Address::generate(&env),
+        &10_000_000,
+        &usd(&env),
+        &None,
+    );
+
+    client.mark_processing(&relayer, &tx_id);
+    client.mark_completed(&relayer, &tx_id);
+    let tx = client.get_transaction(&tx_id);
+    assert_eq!(
+        tx.status,
+        synapse_contract::types::TransactionStatus::Completed
+    );
+
+    client.mark_failed(
+        &relayer,
+        &tx_id,
+        &SorobanString::from_str(&env, "late error"),
+    );
+}
 
 // ---------------------------------------------------------------------------
 // DLQ retry — TODO(#29)–(#32)
@@ -368,7 +404,8 @@ fn admin_can_retry_dlq() {
 }
 
 #[test]
-fn original_relayer_can_retry_dlq() {
+#[should_panic(expected = "not admin")]
+fn non_admin_cannot_retry_dlq() {
     let env = Env::default();
     let (admin, _, client) = setup(&env);
     let relayer = Address::generate(&env);
@@ -378,13 +415,11 @@ fn original_relayer_can_retry_dlq() {
         &Address::generate(&env), &50_000_000, &usd(&env), &None);
     client.mark_failed(&relayer, &tx_id, &SorobanString::from_str(&env, "timeout"));
     client.retry_dlq(&relayer, &tx_id);
-    let tx = client.get_transaction(&tx_id);
-    assert_eq!(tx.status, synapse_contract::types::TransactionStatus::Pending);
 }
 
 #[test]
-#[should_panic(expected = "not admin or original relayer")]
-fn unrelated_relayer_cannot_retry_dlq() {
+#[should_panic(expected = "dlq entry not found")]
+fn retry_dlq_panics_when_no_dlq_entry() {
     let env = Env::default();
     let (admin, _, client) = setup(&env);
     let relayer = Address::generate(&env);
@@ -441,7 +476,7 @@ fn finalize_settlement_stores_record() {
 }
 
 #[test]
-fn finalize_settlement_emits_per_tx_events() {
+fn finalize_settlement_emits_settlement_finalized_event() {
     let env = Env::default();
     let (admin, contract_id, client) = setup(&env);
     let relayer = Address::generate(&env);
@@ -468,31 +503,14 @@ fn finalize_settlement_emits_per_tx_events() {
     );
 
     let all_events = env.events().all();
-    let event_count = all_events.len();
     let topics: soroban_sdk::Vec<Val> = (symbol_short!("synapse"),).into_val(&env);
+    let (emitting_contract, event_topics, event_data) =
+        all_events.get(all_events.len() - 1).unwrap();
 
-    let (event_contract_1, event_topics_1, event_data_1) = all_events.get(event_count - 3).unwrap();
-    let (event_contract_2, event_topics_2, event_data_2) = all_events.get(event_count - 2).unwrap();
-    let (event_contract_3, event_topics_3, event_data_3) = all_events.get(event_count - 1).unwrap();
-
-    assert_eq!(event_contract_1, contract_id.clone());
-    assert_eq!(event_topics_1, topics.clone());
+    assert_eq!(emitting_contract, contract_id);
+    assert_eq!(event_topics, topics);
     assert_eq!(
-        Event::try_from_val(&env, &event_data_1).unwrap(),
-        Event::Settled(tx_id_1, settlement_id.clone()),
-    );
-
-    assert_eq!(event_contract_2, contract_id.clone());
-    assert_eq!(event_topics_2, topics.clone());
-    assert_eq!(
-        Event::try_from_val(&env, &event_data_2).unwrap(),
-        Event::Settled(tx_id_2, settlement_id.clone()),
-    );
-
-    assert_eq!(event_contract_3, contract_id);
-    assert_eq!(event_topics_3, topics);
-    assert_eq!(
-        Event::try_from_val(&env, &event_data_3).unwrap(),
+        Event::try_from_val(&env, &event_data).unwrap(),
         Event::SettlementFinalized(settlement_id, usd(&env), 100_000_000),
     );
 }

@@ -519,7 +519,7 @@
                       "val": {
                         "vec": [
                           {
-                            "symbol": "Failed"
+                            "symbol": "Completed"
                           }
                         ]
                       }
@@ -811,39 +811,6 @@
                 "key": {
                   "ledger_key_nonce": {
                     "nonce": 4837995959683129791
-                  }
-                },
-                "durability": "temporary",
-                "val": "void"
-              }
-            },
-            "ext": "v0"
-          },
-          6311999
-        ]
-      ],
-      [
-        {
-          "contract_data": {
-            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
-            "key": {
-              "ledger_key_nonce": {
-                "nonce": 8370022561469687789
-              }
-            },
-            "durability": "temporary"
-          }
-        },
-        [
-          {
-            "last_modified_ledger_seq": 0,
-            "data": {
-              "contract_data": {
-                "ext": "v0",
-                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
-                "key": {
-                  "ledger_key_nonce": {
-                    "nonce": 8370022561469687789
                   }
                 },
                 "durability": "temporary",
@@ -1431,18 +1398,18 @@
       "event": {
         "ext": "v0",
         "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "type_": "contract",
+        "type_": "diagnostic",
         "body": {
           "v0": {
             "topics": [
               {
-                "symbol": "synapse"
+                "symbol": "log"
               }
             ],
             "data": {
               "vec": [
                 {
-                  "symbol": "MovedToDlq"
+                  "string": "caught panic 'cannot fail completed transaction' from contract function 'Symbol(obj#351)'"
                 },
                 {
                   "string": "15ec7bf0b50732b49f8228e07d243653"
@@ -1455,7 +1422,7 @@
           }
         }
       },
-      "failed_call": false
+      "failed_call": true
     },
     {
       "event": {
@@ -1466,13 +1433,17 @@
           "v0": {
             "topics": [
               {
-                "symbol": "fn_return"
+                "symbol": "error"
               },
               {
-                "symbol": "mark_failed"
+                "error": {
+                  "wasm_vm": "invalid_action"
+                }
               }
             ],
-            "data": "void"
+            "data": {
+              "string": "caught error from function"
+            }
           }
         }
       },
